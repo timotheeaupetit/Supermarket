@@ -6,13 +6,13 @@ Created on Mon Jul  4 16:29:33 2016
 """
 
 class CMagasin():
-    taille_caisse = 3 #taille d'une file d'attente à une caisse
-    temps_magasin = 5
-    temps_caisse = 4
+    taille_caisse = 3   # taille d'une file d'attente à une caisse
+    temps_magasin = 5   # constante : temps qu'un client passe en magasin
+    temps_caisse = 4    # constante : temps qu'un client passe en caisse
+    nb_clients = 0      # nombre de clients
         
     def __init__(self):
         self.caisses_utilisees = []
-        self.nb_clients = 0
         
     def client_entre(self, d):
         self.nb_clients += 1

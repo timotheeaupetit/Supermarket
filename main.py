@@ -13,4 +13,4 @@ def main():
     mag.gerer_magasin(Tnow)
     
 if __name__ == '__main__':
-   main()
+    main()

@@ -111,7 +111,7 @@ class CMagasin():
         self.caisses_utilisees.append(0)
         
     def fermer_caisse(self, c):
-        self.caisses_utilissees.remove(c)
+        self.caisses_utilisees.remove(c)
 
 #-----------------------------------------------------------------
         

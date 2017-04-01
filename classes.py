@@ -34,7 +34,7 @@ class Supermarket():
         print (self.getQueueSize(caisse), 'customer(s) are queuing')
         
         queueSize = self.busy_Checkout[caisse]
-        evt = Event(d + 5 * taille_file, 3, caisse) # 'checkout' event, for current customer
+        evt = Event(d + 5 * queueSize, 3, caisse) # 'checkout' event, for current customer
     
     def client_Checkout(self, d, c):   
         evt = Event(d + Supermarket.time_at_checkout, 4, c) # 'exit' event, for current customer
@@ -44,7 +44,7 @@ class Supermarket():
         if self.busy_Checkout[c] == 0:
             self.closeCheckout(c)
         
-    def manage(self, Tnow):
+    def manageSupermarket(self, Tnow):
         event = Event(Tnow, 1)
         while Tnow < 20: #len(event.liste_evt) > 0: #Tant qu'il y a des evenements à traiter
             print("Events:", event.liste_evt)
@@ -68,7 +68,6 @@ class Supermarket():
                     event.sup_evt(Tnow, type_evt, caisse) #supprimer evenement courant
             
             Tnow += 1
-            input ('Press Enter to continue')
 
     def timeToNextCustomer(self, Tnow):
         if 0 <= Tnow and Tnow < 60:     #Tnow between 9-10am

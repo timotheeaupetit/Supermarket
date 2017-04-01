@@ -10,7 +10,7 @@ from classes import Supermarket
 def main():
     supermarket = Supermarket()
     Tnow = 0
-    supermarket.manage(Tnow)
+    supermarket.manageSupermarket(Tnow)
     
 if __name__ == '__main__':
     main()

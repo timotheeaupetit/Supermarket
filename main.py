@@ -5,12 +5,12 @@ Created on Mon Jul  4 16:29:33 2016
 @author: timotheeaupetit
 """
 
-from classes import CMagasin
+from classes import Supermarket
 
 def main():
-    mag = CMagasin()
+    supermarket = Supermarket()
     Tnow = 0
-    mag.gerer_magasin(Tnow)
+    supermarket.manageSupermarket(Tnow)
     
 if __name__ == '__main__':
     main()

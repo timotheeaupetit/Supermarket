@@ -15,11 +15,11 @@ class Supermarket():
         self.customerCount = 0      # amount of customers in the store
         
     def manageSupermarket(self, Tnow):
-        self.Events(Event(Tnow, 1))
+        self.Events.append(Event(Tnow, 1))
         
         while Tnow < 20: #len(self.Events) > 0: # While remaining events
+            print ('Date =', Tnow)    
             print("Events:", self.Events)
-            print ('Date =', Tnow)
             
             for evt in self.Events:
                 type_evt = evt[1]
@@ -38,9 +38,11 @@ class Supermarket():
                     if type_evt == 4: # customer go out
                         self.customer_Exit(checkout)
                         
-                    self.Events.remove([Tnow, type_evt, checkout]) #supprimer evenement courant
+                    self.Events.remove([Tnow, type_evt, checkout]) # delete current event
+                    self.Events.sort()
             
             Tnow += 1  
+            input('Press enter to continue')
             
     def customer_Enter(self, d):
         """
@@ -51,7 +53,7 @@ class Supermarket():
         self.customerCount += 1
         print (self.customerCount, 'customer(s) are shopping')
         
-        self.Events.append(Event(d + self.timeToNextCustomer(d), 1)) # 'next customer' event
+        self.Events.append(Event(d + Supermarket.timeToNextCustomer(d), 1)) # 'next customer' event
         self.Events.append(Event(d + Supermarket.time_in_store, 2)) # 'to queue' event, for current customer
         self.Events.sort()
 
@@ -74,17 +76,19 @@ class Supermarket():
         print (chk.queueSize, 'customer(s) are queuing')
         
         self.Events.append(Event(d + Checkout.checkoutDuration * chk.queueSize, 3, chk)) # 'checkout' event, for current customer
+        self.Events.sort()
     
     def customer_Checkout(self, d, checkout):   
         checkout.removeFromQueue()
         self.Events.append(Event(d + Supermarket.time_at_checkout, 4, checkout)) # 'exit' event, for current customer
+        self.Events.sort()
         
     def customer_Exit(self, checkout):
-        
+        print('Customer exit \n')
         if checkout.queueSize == 0:
             self.closeCheckout(checkout)
         
-    def timeToNextCustomer(self, Tnow):
+    def timeToNextCustomer(Tnow):
         """
         Calculate the time between each customer arrival, based on the hour range
         """
@@ -143,15 +147,21 @@ class Supermarket():
 class Checkout():        
     queueCapacity = 3       # max size of a queue at a checkout
     checkoutDuration = 4    # time a customer spends to pay at the checkout
+    checkoutID = 0
     
     def __init__(self):
         self.queueSize = 0      # size of a queue at a checkout
+        self.id = Checkout.checkoutID
+        Checkout.checkoutID += 1
     
     def addToQueue(self):
         self.queueSize += 1
     
     def removeFromQueue(self):
         self.queueSize -= 1
+        
+    def __repr__(self):
+        return str(self.id) #+ ' ('+ str(self.queueSize)+')'
 #-----------------------------------------------------------------    
 class Event(list):
     
@@ -161,4 +171,6 @@ class Event(list):
         - t: type of event (1: Enter, 2: Queue, 3: Checkout or 4: Exit)
         - c: checkout number
         """
-        self.append(d, t, c)
+        self.append(d)
+        self.append(t)
+        self.append(c)

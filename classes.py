@@ -20,6 +20,9 @@ class Supermarket():
         while Tnow < 20: #len(self.Events) > 0: # While remaining events
             print ('Date =', Tnow)    
             print("Events:", self.Events)
+            print (self.customerCount, 'customer(s) are shopping')
+            print (self.getQueueSizes, 'customer(s) are queuing')
+            print(len(self.busyCheckouts), 'open checkout(s)')
             
             for evt in self.Events:
                 type_evt = evt[1]
@@ -42,7 +45,7 @@ class Supermarket():
                     self.Events.sort()
             
             Tnow += 1  
-            input('Press enter to continue')
+            #input('Press enter to continue')
             
     def customer_Enter(self, d):
         """
@@ -51,7 +54,7 @@ class Supermarket():
             - the current customer's move to checkout's buffer
         """
         self.customerCount += 1
-        print (self.customerCount, 'customer(s) are shopping')
+        
         
         self.Events.append(Event(d + Supermarket.timeToNextCustomer(d), 1)) # 'next customer' event
         self.Events.append(Event(d + Supermarket.time_in_store, 2)) # 'to queue' event, for current customer
@@ -65,7 +68,6 @@ class Supermarket():
         
         if len(self.busyCheckouts) == 0:
             self.openCheckout()
-            print(len(self.busyCheckouts), 'open checkout(s)')
             
         chk = self.chooseCheckout()
         
@@ -73,7 +75,7 @@ class Supermarket():
             chk = self.openCheckout()
             
         chk.addToQueue()
-        print (chk.queueSize, 'customer(s) are queuing')
+        
         
         self.Events.append(Event(d + Checkout.checkoutDuration * chk.queueSize, 3, chk)) # 'checkout' event, for current customer
         self.Events.sort()
@@ -113,11 +115,11 @@ class Supermarket():
         """
         Returns the total amount of customers queuing before all checkouts
         """
-        return sum(i.queueSize for i in self.busyCheckouts)
+        return sum(chk.queueSize for chk in self.busyCheckouts)
         
     def chooseCheckout(self):
         index = 0
-        shortest = min(i.queueSize for i in self.busyCheckouts)
+        shortest = min(chk.queueSize for chk in self.busyCheckouts)
         
         for checkout in self.busyCheckouts:
             if checkout.queueSize == shortest:

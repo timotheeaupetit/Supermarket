@@ -5,7 +5,7 @@ Created on Mon Jul  4 16:29:33 2016
 @author: timotheeaupetit
 """
 
-class Supermarket():
+class Supermarket(object):
     time_in_store = 5       # time a customer spends in the store
     time_at_checkout = 4    # time a customer spends to pay at the checkout
         
@@ -18,17 +18,22 @@ class Supermarket():
         self.Events.append(Event(Tnow, 1))
         
         while Tnow < 20: #len(self.Events) > 0: # While remaining events
-            print ('Date =', Tnow)    
+            print ('\nDate =', Tnow)    
             print("Events:", self.Events)
-            print (self.customerCount, 'customer(s) are shopping')
-            print (self.getQueueSizes, 'customer(s) are queuing')
+            print(self.customerCount, 'customer(s) are shopping')
+            print(self.getQueueSizes(), 'customer(s) are queuing')
             print(len(self.busyCheckouts), 'open checkout(s)')
             
+            oldEvents = []
+            
             for evt in self.Events:
-                type_evt = evt[1]
-                checkout = evt[2]
-                
                 if evt[0] == Tnow:
+                    
+                    type_evt = evt[1]
+                    checkout = evt[2]
+                    
+                    oldEvents.append(evt) # memorize current event to delete it outside of the loop
+                    
                     if type_evt == 1: # customer go in
                         self.customer_Enter(Tnow)
                         
@@ -40,9 +45,8 @@ class Supermarket():
         
                     if type_evt == 4: # customer go out
                         self.customer_Exit(checkout)
-                        
-                    self.Events.remove([Tnow, type_evt, checkout]) # delete current event
-                    self.Events.sort()
+            
+            self.Events = [evt for evt in self.Events if evt not in oldEvents]
             
             Tnow += 1  
             #input('Press enter to continue')
@@ -54,7 +58,6 @@ class Supermarket():
             - the current customer's move to checkout's buffer
         """
         self.customerCount += 1
-        
         
         self.Events.append(Event(d + Supermarket.timeToNextCustomer(d), 1)) # 'next customer' event
         self.Events.append(Event(d + Supermarket.time_in_store, 2)) # 'to queue' event, for current customer
@@ -76,20 +79,49 @@ class Supermarket():
             
         chk.addToQueue()
         
-        
         self.Events.append(Event(d + Checkout.checkoutDuration * chk.queueSize, 3, chk)) # 'checkout' event, for current customer
         self.Events.sort()
     
-    def customer_Checkout(self, d, checkout):   
-        checkout.removeFromQueue()
-        self.Events.append(Event(d + Supermarket.time_at_checkout, 4, checkout)) # 'exit' event, for current customer
+    def customer_Checkout(self, d, chk):   
+        chk.removeFromQueue()
+        self.Events.append(Event(d + Supermarket.time_at_checkout, 4, chk)) # 'exit' event, for current customer
         self.Events.sort()
         
-    def customer_Exit(self, checkout):
-        print('Customer exit \n')
-        if checkout.queueSize == 0:
-            self.closeCheckout(checkout)
+    def customer_Exit(self, chk):
+        print('1 customer exit from checkout', chk.id, '\n')
+        if chk.queueSize == 0:
+            self.closeCheckout(chk)
+                
+    def openCheckout(self):
+        """
+        Creates a new checkout, appends it to the list of open checkouts an return it
+        """
+        chk = Checkout()
+        self.busyCheckouts.append(chk)
+        return chk
+
+    def chooseCheckout(self):
+        """
+        Returns the checkout which has the shortest queue
+        """
+        index = 0
+        shortest = min(chk.queueSize for chk in self.busyCheckouts)
         
+        for chk in self.busyCheckouts:
+            if chk.queueSize == shortest:
+                return self.busyCheckouts[index]          
+            
+            index += 1
+  
+    def closeCheckout(self, chk):
+        self.busyCheckouts.remove(chk)        
+      
+    def getQueueSizes(self):
+        """
+        Returns the total amount of customers queuing before all checkouts
+        """
+        return sum(chk.queueSize for chk in self.busyCheckouts)
+            
     def timeToNextCustomer(Tnow):
         """
         Calculate the time between each customer arrival, based on the hour range
@@ -110,43 +142,9 @@ class Supermarket():
             return 1
         if 600 <= Tnow and Tnow < 645:  #Tnow between 6-6:44pm
             return 2
-
-    def getQueueSizes(self):
-        """
-        Returns the total amount of customers queuing before all checkouts
-        """
-        return sum(chk.queueSize for chk in self.busyCheckouts)
-        
-    def chooseCheckout(self):
-        index = 0
-        shortest = min(chk.queueSize for chk in self.busyCheckouts)
-        
-        for checkout in self.busyCheckouts:
-            if checkout.queueSize == shortest:
-                return self.busyCheckouts[index]          
-            index += 1
-    
-    def openCheckout(self):
-        chk = Checkout()
-        self.busyCheckouts.append(chk)
-        return chk
-        
-    def closeCheckout(self, checkout):
-        self.busyCheckouts.remove(checkout)
-        
-#Supprime un evenement de la liste d'evenements
-    def sup_evt(self, d, t, c):
-        self.Events.remove([d, t, c])
-
-    def get_cur_evt(self, d):
-        self.cur_evt = []
-        for evt in Event.liste_evt:
-            if evt[0] == d:
-                self.cur_evt.append(evt)
-        return self.cur_evt
     
 #-----------------------------------------------------------------
-class Checkout():        
+class Checkout(object):        
     queueCapacity = 3       # max size of a queue at a checkout
     checkoutDuration = 4    # time a customer spends to pay at the checkout
     checkoutID = 0

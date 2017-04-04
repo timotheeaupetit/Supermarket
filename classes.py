@@ -18,7 +18,11 @@ class Supermarket(object):
     def manageSupermarket(self, Tnow):
         self.Events.append(Event(Tnow, 1)) # initial Event
         
-        while Tnow < 20: #len(self.Events) > 0: # While remaining events
+        while Tnow < 120: #len(self.Events) > 0: # While remaining events
+            
+            # Causes a bug at TNow = 29 (having started at 0)
+            self.Events.sort() # reorder events (more readable during debug)
+            
             print ('\nDate =', Tnow)    
             print("Events:", self.Events)
             print(self.customerCount, 'customer(s) are shopping')
@@ -62,7 +66,6 @@ class Supermarket(object):
         
         self.Events.append(Event(d + Supermarket.timeToNextCustomer(d), 1)) # 'next customer' event
         self.Events.append(Event(d + Supermarket.time_in_store, 2)) # 'to queue' event, for current customer
-        self.Events.sort()
 
     def customer_Queue(self, d):
         """
@@ -71,17 +74,15 @@ class Supermarket(object):
         self.customerCount -= 1
         
         if len(self.busyCheckouts) == 0:
-            self.openCheckout()
-            
-        chk = self.chooseCheckout()
-        
-        if chk.queueSize == Checkout.queueCapacity:
             chk = self.openCheckout()
+        else:
+            chk = self.chooseCheckout()
+            if chk.queueSize == Checkout.queueCapacity:
+                chk = self.openCheckout()
             
         chk.addToQueue()
         
         self.Events.append(Event(d + Checkout.checkoutDuration * chk.queueSize, 3, chk)) # 'checkout' event, for current customer
-        self.Events.sort()
     
     def customer_Checkout(self, d, chk):
         """
@@ -89,7 +90,6 @@ class Supermarket(object):
         """
         chk.removeFromQueue() # remove one customer from the chk queue
         self.Events.append(Event(d + Supermarket.time_at_checkout, 4, chk)) # 'exit' event, for current customer
-        self.Events.sort()
         
     def customer_Exit(self, chk):
         """

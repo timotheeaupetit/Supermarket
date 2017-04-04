@@ -6,16 +6,17 @@ Created on Mon Jul  4 16:29:33 2016
 """
 
 class Supermarket(object):
-    time_in_store = 5       # time a customer spends in the store
-    time_at_checkout = 4    # time a customer spends to pay at the checkout
+    
+    time_in_store = 5       # arbitrary time a customer spends in the store
+    time_at_checkout = 4    # arbitrary time a customer spends at the checkout (not in the queue before the checkout)
         
     def __init__(self):
-        self.Events = []            # list of ordered events
+        self.Events = []            # list of events
         self.busyCheckouts = []     # list containing open checkouts
         self.customerCount = 0      # amount of customers in the store
         
     def manageSupermarket(self, Tnow):
-        self.Events.append(Event(Tnow, 1))
+        self.Events.append(Event(Tnow, 1)) # initial Event
         
         while Tnow < 20: #len(self.Events) > 0: # While remaining events
             print ('\nDate =', Tnow)    
@@ -34,16 +35,16 @@ class Supermarket(object):
                     
                     oldEvents.append(evt) # memorize current event to delete it outside of the loop
                     
-                    if type_evt == 1: # customer go in
+                    if type_evt == 1:               # customer go in
                         self.customer_Enter(Tnow)
                         
-                    if type_evt == 2: # customer queue before checkout
+                    if type_evt == 2:               # customer queue before checkout
                         self.customer_Queue(Tnow)          
         
-                    if type_evt == 3: # customer pay
+                    if type_evt == 3:               # customer pay
                         self.customer_Checkout(Tnow, checkout)
         
-                    if type_evt == 4: # customer go out
+                    if type_evt == 4:               # customer go out
                         self.customer_Exit(checkout)
             
             self.Events = [evt for evt in self.Events if evt not in oldEvents]
@@ -65,7 +66,7 @@ class Supermarket(object):
 
     def customer_Queue(self, d):
         """
-        This method remove 1 to the customer count...
+        Defines what happens when a customer has finished shopping and reaches the queues
         """
         self.customerCount -= 1
         
@@ -82,12 +83,18 @@ class Supermarket(object):
         self.Events.append(Event(d + Checkout.checkoutDuration * chk.queueSize, 3, chk)) # 'checkout' event, for current customer
         self.Events.sort()
     
-    def customer_Checkout(self, d, chk):   
-        chk.removeFromQueue()
+    def customer_Checkout(self, d, chk):
+        """
+        Defines what happens when a customer exits the queue and reaches the checkout
+        """
+        chk.removeFromQueue() # remove one customer from the chk queue
         self.Events.append(Event(d + Supermarket.time_at_checkout, 4, chk)) # 'exit' event, for current customer
         self.Events.sort()
         
     def customer_Exit(self, chk):
+        """
+        Defines what happens when a customer exits the checkout (and therefore the supermarket)
+        """
         print('1 customer exit from checkout', chk.id, '\n')
         if chk.queueSize == 0:
             self.closeCheckout(chk)
@@ -114,6 +121,9 @@ class Supermarket(object):
             index += 1
   
     def closeCheckout(self, chk):
+        """
+        Closes the checkout passed in argument (removal from busyCheckouts list)
+        """
         self.busyCheckouts.remove(chk)        
       
     def getQueueSizes(self):
@@ -124,7 +134,7 @@ class Supermarket(object):
             
     def timeToNextCustomer(Tnow):
         """
-        Calculate the time between each customer arrival, based on the hour range
+        Calculates the time between each customer arrival, based on the hour range
         """
         if 0 <= Tnow and Tnow < 60:     #Tnow between 9-10am
             return 4
@@ -142,9 +152,10 @@ class Supermarket(object):
             return 1
         if 600 <= Tnow and Tnow < 645:  #Tnow between 6-6:44pm
             return 2
-    
+
 #-----------------------------------------------------------------
 class Checkout(object):        
+    
     queueCapacity = 3       # max size of a queue at a checkout
     checkoutDuration = 4    # time a customer spends to pay at the checkout
     checkoutID = 0
@@ -162,15 +173,16 @@ class Checkout(object):
         
     def __repr__(self):
         return str(self.id) #+ ' ('+ str(self.queueSize)+')'
-#-----------------------------------------------------------------    
-class Event(list):
     
-    def __init__(self, d, t, c = None):
-        """ Arguments are used as follows:
+#-----------------------------------------------------------------    
+class Event(tuple):
+    """ 
+    An Event is a tuple (read only) of 3 elements:
         - d: date of the event
         - t: type of event (1: Enter, 2: Queue, 3: Checkout or 4: Exit)
-        - c: checkout number
-        """
-        self.append(d)
-        self.append(t)
-        self.append(c)
+        - c: checkout object (None by default)
+    """
+    def __new__ (cls, d, t, c = None):
+        return super(Event, cls).__new__(cls, tuple([d, t, c]))
+
+    # the __init__ method is called from the tuple class, so there is no need to redefine it here

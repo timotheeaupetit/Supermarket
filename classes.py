@@ -19,9 +19,7 @@ class Supermarket(object):
         self.Events.append(Event(Tnow, 1)) # initial Event
         
         while Tnow < 120: #len(self.Events) > 0: # While remaining events
-            
-            # Causes a bug at TNow = 29 (having started at 0)
-            self.Events.sort() # reorder events (more readable during debug)
+            self.Events.sort(key=lambda x: x[0]) # reorder events by their dates
             
             print ('\nDate =', Tnow)    
             print("Events:", self.Events)
@@ -131,7 +129,7 @@ class Supermarket(object):
         Returns the total amount of customers queuing before all checkouts
         """
         return sum(chk.queueSize for chk in self.busyCheckouts)
-            
+        
     def timeToNextCustomer(Tnow):
         """
         Calculates the time between each customer arrival, based on the hour range

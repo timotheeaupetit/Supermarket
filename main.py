@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul  4 16:29:33 2016
@@ -5,7 +6,7 @@ Created on Mon Jul  4 16:29:33 2016
 @author: timotheeaupetit
 """
 
-from classes import Supermarket
+from supermarket import Supermarket
 
 def main():
     supermarket = Supermarket() # we only need to create one supermarket
